@@ -52,14 +52,21 @@ ReactESP app([] () {
       pINA219busVoltage->connectTo(new SKOutputNumber("electrical.bank2.busVoltage"));
 
   // Do the same for the shunt voltage.
+  const float shuntVoltageMultiplier = 1.0; 
+  const float shuntVoltageOffset = 0.;
+  
   auto* pINA219shuntVoltage = new INA219value(pINA219, shunt_voltage, read_delay, "/bank2/shuntVoltage");
-      
-      pINA219shuntVoltage->connectTo(new SKOutputNumber("electrical.bank2.shuntVoltage"));
+     
+      pINA219shuntVoltage->connectTo(new Linear(shuntVoltageMultiplier, shuntVoltageOffset, "/bank2/shuntVoltageLinear"))
+                         ->connectTo(new SKOutputNumber("electrical.bank2.shuntVoltage"));
 
   // Do the same for the current (amperage).
+  const float currentMultiplier = 1.0; 
+  const float currentOffset = 0.;
   auto* pINA219current = new INA219value(pINA219, current, read_delay, "/bank2/current");
       
-      pINA219current->connectTo(new SKOutputNumber("electrical.bank2.current"));   
+      pINA219current->connectTo(new Linear(currentMultiplier, currentOffset, "/bank2/currentLinear"))
+                    ->connectTo(new SKOutputNumber("electrical.bank2.current"));   
 
   // Do the same for the power (watts).
   auto* pINA219power = new INA219value(pINA219, power, read_delay, "/bank2/power");
@@ -73,14 +80,13 @@ ReactESP app([] () {
 
   uint8_t pin = A0;
 
-  const char* batteryVoltageConfigPath = "/electrical/bank2/linear";
-  const float multiplier = 15.0; // 100% divided by 730 = 0.137 "percent per analogRead() unit"
-  const float offset = 0.;
+  const float batteryVoltageMultiplier = 15.0; // 100% divided by 730 = 0.137 "percent per analogRead() unit"
+  const float batteryVoltageOffset = 0.;
   
-  auto* pAnalogInput = new AnalogInput(pin, read_delay, "bank2/batteryVoltage");  
+  auto* pAnalogInput = new AnalogInput(pin, read_delay, "/bank2/batteryVoltage");  
     pAnalogInput->connectTo(new AnalogVoltage(1.0, 1.0, 0))
-                ->connectTo(new Linear(multiplier, offset, batteryVoltageConfigPath))
-                ->connectTo(new SKOutputNumber("electrical.bank2.battVoltage"));
+                ->connectTo(new Linear(batteryVoltageMultiplier, batteryVoltageOffset, "/bank2/batteryVoltageLinear"))
+                ->connectTo(new SKOutputNumber("electrical.bank2.batteryVoltage"));
 
 
   sensesp_app->enable();
